@@ -1,5 +1,5 @@
 import express from 'express'
-import membershipRoutes from './modern/routes/membership.routes'
+import membershipRoutes from './modern/routes/membership'
 import { errorHandler } from './error-handler.middleware'
 
 // because of the javascript module, we need to use require to import the legacy routes
