@@ -10,10 +10,22 @@ export type MembershipPeriod = {
 	state: string
 };
 
+/**
+ * Returns all membership periods available in the db (local JSON).
+ * @returns MembershipPeriod[]
+ */
 export const getAllMembershipPeriods = (): MembershipPeriod[] => {
 	return membershipPeriodsData;
 };
 
+/**
+ * Creates membership periods for a specific membership knowing its id.
+ * @param membership membershipId
+ * @param validFrom membership validFrom date
+ * @param billingInterval the interval at which the bills are paid
+ * @param billingPeriods a number indicating billing periods
+ * @returns 
+ */
 export const constructMembershipPeriods = (membership: number, validFrom: Date, billingInterval: string, billingPeriods: number): MembershipPeriod[] => {
 	const membershipPeriods: MembershipPeriod[] = [];
 	let periodStart = validFrom
