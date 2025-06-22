@@ -92,6 +92,7 @@ export const createMembership = (requestBody: CreateMembershipRequestBody): Memb
     billingPeriods,
     billingInterval,
   };
+	saveMembership(newMembership);
 	const membershipPeriods = constructMembershipPeriods(newMembership.id, validFrom, billingInterval, billingPeriods);
 	return { membership: newMembership, periods: membershipPeriods};
 };
@@ -149,4 +150,8 @@ const getMembershipState = (validFrom: Date, validUntil: Date): string => {
 		state = 'expired'
 	}
 	return state;
+}
+
+const saveMembership = (membership: Membership) => {
+	membershipsData.push(membership);
 }
