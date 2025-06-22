@@ -1,0 +1,8 @@
+- change membershipId to membership while filtering membership with its periods to match the name in the membershipPeriod
+- for membership with id=3, change the paymentMethod from null to a valid paymentMethod (ex: cash) as the paymentMethod should be a valid string (as per the data model)
+- assumption: that valid paymentMethod(s) are "cash" and "credit card"
+- decision: added a new custom error message for invalid paymentMethod "invalidPaymentMethod"
+- renaming "invalidBillingPeriods" error message to "invalidBillingInterval" as the if condition check for the billingInterval not the billingPeriods
+- assumption&decision: all parsed fields from the request body are mandatory fields, therefore I add a validation check using Zod for the mandatory fields (name, recurringPrice, paymentMethod, billingInterval, billingPeriods)
+- error message "billingPeriodsLessThan3Years" is implemented incorrect. I fixed it
+- assumption: dates for validFrom and validUntil are in localtime and not UTC -> to support multiple regions -> use UTC (ToDo)
