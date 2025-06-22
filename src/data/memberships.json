@@ -37,7 +37,7 @@
     "validUntil": "2023-12-31",
     "state": "active",
     "assignedBy": "Admin",
-    "paymentMethod": null,
+    "paymentMethod": "cash",
     "billingInterval": "monthly",
     "billingPeriods": 6    
   }

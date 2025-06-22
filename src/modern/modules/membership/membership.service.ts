@@ -11,7 +11,7 @@ type Membership = {
     validUntil: string,
     state: string,
     assignedBy: string,
-    paymentMethod: string | null,
+    paymentMethod: string,
     billingInterval: string,
     billingPeriods: number
 };
