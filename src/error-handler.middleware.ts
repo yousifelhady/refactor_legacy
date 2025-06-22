@@ -1,6 +1,6 @@
 import { ErrorRequestHandler } from 'express'
 import { ZodError } from 'zod';
-import { MembershipRequestBodyError } from './modern/modules/membership/membership.errors';
+import { CreateMembershipRequestBodyError } from './modern/modules/membership/membership.errors';
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   console.error(err.stack);
@@ -12,7 +12,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
       message: formattedErrors[0].message,
     });
   }
-  if (err instanceof MembershipRequestBodyError) {
+  if (err instanceof CreateMembershipRequestBodyError) {
     return res.status(400).json({
       message: err.message,
     });

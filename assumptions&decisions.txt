@@ -5,4 +5,9 @@
 - renaming "invalidBillingPeriods" error message to "invalidBillingInterval" as the if condition check for the billingInterval not the billingPeriods
 - assumption&decision: all parsed fields from the request body are mandatory fields, therefore I add a validation check using Zod for the mandatory fields (name, recurringPrice, paymentMethod, billingInterval, billingPeriods)
 - error message "billingPeriodsLessThan3Years" is implemented incorrect. I fixed it
-- assumption: dates for validFrom and validUntil are in localtime and not UTC -> to support multiple regions -> use UTC (ToDo)
+- decision: added Zod to validate request body
+- I noticed that for the legacy endpoints, GET /memberships return inner keys "membership" and "periods", while POST /memberships return inner keys "membership" and "membershipPeriods". Since they requirement is to maintain exact same response, I will maintain them as they are in the legacy.
+- The loaded memberships from the static json have its keys ordered differently from how I ordered them in my code. I ordered them alplabeticaly to make reading (and also adding new keys) easier. But when displaying the result of memberships after adding a new membership, some memberships will have different order of its nested keys. For real database it won't happen because the database will return the keys sorted the same way every time!
+- There is inconsistency between the return key "membershipId" when using the legacy POST endpoint and return key "membership" when using the modern POST endpoint when listing the membershipPeriods
+- There is a possibility to create an enum for the billingInterval, also potentially be shared across the 2 modules (membership and membershipPeriod)
+- 

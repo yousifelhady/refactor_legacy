@@ -1,22 +1,22 @@
 import * as z from "zod";
 import { v4 as uuidv4 } from "uuid";
 import membershipsData from "../../../data/memberships.json";
-import { MembershipRequestBodyError } from './membership.errors';
+import { CreateMembershipRequestBodyError } from './membership.errors';
 import { constructMembershipPeriods, getAllMembershipPeriods, MembershipPeriod } from "../membershipPeriod/membershipPeriod.service";
 
 type Membership = {
-	id: number,
-	uuid: string,
-	name: string,
-	userId: number,
-	recurringPrice: number,
-	validFrom: string,
-	validUntil: string,
-	state: string,
 	assignedBy: string,
-	paymentMethod: string,
 	billingInterval: string,
 	billingPeriods: number
+	id: number,
+	name: string,
+	paymentMethod: string,
+	recurringPrice: number,
+	state: string,
+	userId: number,
+	uuid: string,
+	validFrom: string,
+	validUntil: string,
 };
 
 type MembershipWithPeriods = {
@@ -25,22 +25,6 @@ type MembershipWithPeriods = {
 };
 
 const CreateMembershipRequestBodySchema = z.object({
-	name: z.string({
-		required_error: "missingMandatoryFields"
-	}),
-	recurringPrice: z.number({
-		required_error: "missingMandatoryFields"
-	}).positive({
-		message: "negativeRecurringPrice"
-	}),
-	paymentMethod: z.enum(["cash", "credit card"], {
-		errorMap: (issue) => {
-			if (issue.code === "invalid_enum_value") {
-				return { message: "invalidPaymentMethod" }
-			}
-			return { message: "missingPaymentMethod" }
-		}
-	}),
 	billingInterval: z.enum(["weekly", "monthly", "yearly"], {
 		errorMap: (issue) => {
 			if (issue.code === "invalid_enum_value") {
@@ -52,11 +36,31 @@ const CreateMembershipRequestBodySchema = z.object({
 	billingPeriods: z.number({
 			required_error: "missingBillingPeriods"
 	}),
+	name: z.string({
+		required_error: "missingMandatoryFields"
+	}),
+	paymentMethod: z.enum(["cash", "credit card"], {
+		errorMap: (issue) => {
+			if (issue.code === "invalid_enum_value") {
+				return { message: "invalidPaymentMethod" }
+			}
+			return { message: "missingPaymentMethod" }
+		}
+	}),
+	recurringPrice: z.number({
+		required_error: "missingMandatoryFields"
+	}).positive({
+		message: "negativeRecurringPrice"
+	}),
 	validFrom: z.coerce.date().optional()
 });
 
 type CreateMembershipRequestBody = z.infer<typeof CreateMembershipRequestBodySchema>;
 
+/**
+ * Returns all memberships with their periods
+ * @returns MembershipWithPeriods[]
+ */
 export const getMembershipsWithPeriods = (): MembershipWithPeriods[] => {
 	const allMemberships = getAllMemberships();
 	const allMembershipPeriods = getAllMembershipPeriods();
@@ -68,74 +72,93 @@ export const getMembershipsWithPeriods = (): MembershipWithPeriods[] => {
 	return membershipsWithPeriods;
 };
 
+/**
+ * Returns all memberships from the db (or local JSON file)
+ */
 const getAllMemberships = (): Membership[] => {
 	return membershipsData;
 };
 
-export const createMembership = (requestBody: CreateMembershipRequestBody): MembershipWithPeriods => {
-	const userId = 2000;
+/**
+ * Creates a new membership with its periods depending on the membership data from the request body.
+ * Throws Zod validation errors when request body fields are missing or invalid.
+ * Throws custom CreateMembershipRequestBodyError when request body fields have incorrect data.
+ * @param requestBody
+ * @returns MembershipWithPeriods
+ */
+export const createMembershipWithPeriods = (requestBody: CreateMembershipRequestBody): MembershipWithPeriods => {
 	validateRequestBody(requestBody);
-	const { name, paymentMethod, recurringPrice, billingInterval, billingPeriods} = requestBody;
-	const { validFrom, validUntil } = calculateMembershipValidity(requestBody);
+	const assignedBy = "Admin";
+	const userId = 2000;
+	const { billingInterval, billingPeriods, name, paymentMethod, recurringPrice, validFrom : inputValidFrom } = requestBody;
+	const { validFrom, validUntil } = calculateMembershipValidity(inputValidFrom, billingInterval, billingPeriods);
 	const state = getMembershipState(validFrom, validUntil);
-	const newMembership: Membership = {
+	const membership: Membership = {
+		assignedBy,
+    billingInterval,
+    billingPeriods,
     id: getAllMemberships().length + 1,
-    uuid: uuidv4(),
-		assignedBy: "Admin",
-		userId,
     name,
-    state,
-    validFrom: validFrom.toISOString(),
-    validUntil: validUntil.toISOString(),
     paymentMethod,
     recurringPrice,
-    billingPeriods,
-    billingInterval,
+    state,
+		userId,
+    uuid: uuidv4(),
+    validFrom: validFrom.toISOString(),
+    validUntil: validUntil.toISOString(),
   };
-	saveMembership(newMembership);
-	const membershipPeriods = constructMembershipPeriods(newMembership.id, validFrom, billingInterval, billingPeriods);
-	return { membership: newMembership, periods: membershipPeriods};
+	saveMembership(membership);
+	const periods = constructMembershipPeriods(membership.id, validFrom, billingInterval, billingPeriods);
+	return { membership, periods };
 };
 
 const validateRequestBody = (requestBody: CreateMembershipRequestBody) => {
-	CreateMembershipRequestBodySchema.parse(requestBody);
+	CreateMembershipRequestBodySchema.parse(requestBody); // this method throws ZodError when parsing the request body fails.
 	validateRecurringPriceAndPaymentMethod(requestBody.recurringPrice, requestBody.paymentMethod);
 	validateBillingIntervalAndPeriods(requestBody.billingInterval, requestBody.billingPeriods);
 };
 
 const validateRecurringPriceAndPaymentMethod = (recurringPrice: number, paymentMethod: string) => {
 	if (recurringPrice > 100 && paymentMethod === 'cash') {
-		throw new MembershipRequestBodyError("cashPriceBelow100")
+		throw new CreateMembershipRequestBodyError("cashPriceBelow100")
 	}
 }
 
 const validateBillingIntervalAndPeriods = (billingInterval: string, billingPeriods: number) => {
 	if (billingInterval === 'monthly') {
-		if (billingPeriods > 12) {
-			throw new MembershipRequestBodyError("billingPeriodsMoreThan12Months")
-		}
-		if (billingPeriods < 6) {
-			throw new MembershipRequestBodyError("billingPeriodsLessThan6Months")
-		}
+		validateMonthlyBillingInterval(billingPeriods);
 	} else if (billingInterval === 'yearly') {
-		if (billingPeriods > 10) {
-			throw new MembershipRequestBodyError("billingPeriodsMoreThan10Years")
-		}
-		if (billingPeriods < 3) {
-			throw new MembershipRequestBodyError("billingPeriodsLessThan3Years")
-		}
+		validateYearlyBillingInterval(billingPeriods);
 	}
 }
 
-const calculateMembershipValidity = (requestBody: CreateMembershipRequestBody): { validFrom: Date, validUntil: Date } => {
-	const validFrom = requestBody.validFrom ? new Date(requestBody.validFrom) : new Date();
+const validateMonthlyBillingInterval = (billingPeriods: number) => {
+	if (billingPeriods > 12) {
+		throw new CreateMembershipRequestBodyError("billingPeriodsMoreThan12Months")
+	}
+	if (billingPeriods < 6) {
+		throw new CreateMembershipRequestBodyError("billingPeriodsLessThan6Months")
+	}
+}
+
+const validateYearlyBillingInterval = (billingPeriods: number) => {
+	if (billingPeriods > 10) {
+		throw new CreateMembershipRequestBodyError("billingPeriodsMoreThan10Years")
+	}
+	if (billingPeriods < 3) {
+		throw new CreateMembershipRequestBodyError("billingPeriodsLessThan3Years")
+	}
+}
+
+const calculateMembershipValidity = (inputValidFrom: Date | undefined, billingInterval: string, billingPeriods: number): { validFrom: Date, validUntil: Date } => {
+	const validFrom = inputValidFrom ? new Date(inputValidFrom) : new Date();
   const validUntil = new Date(validFrom);
-  if (requestBody.billingInterval === 'monthly') {
-    validUntil.setMonth(validFrom.getMonth() + requestBody.billingPeriods);
-  } else if (requestBody.billingInterval === 'yearly') {
-    validUntil.setMonth(validFrom.getMonth() + requestBody.billingPeriods * 12);
-  } else if (requestBody.billingInterval === 'weekly') {
-    validUntil.setDate(validFrom.getDate() + requestBody.billingPeriods * 7);
+  if (billingInterval === 'monthly') {
+    validUntil.setMonth(validFrom.getMonth() + billingPeriods);
+  } else if (billingInterval === 'yearly') {
+    validUntil.setMonth(validFrom.getMonth() + billingPeriods * 12);
+  } else if (billingInterval === 'weekly') {
+    validUntil.setDate(validFrom.getDate() + billingPeriods * 7);
   }
 	return { validFrom, validUntil };
 }

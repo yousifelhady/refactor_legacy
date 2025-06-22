@@ -1,4 +1,4 @@
-export class MembershipRequestBodyError extends Error {
+export class CreateMembershipRequestBodyError extends Error {
     constructor(message: string) {
         super(message);
     }
