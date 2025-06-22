@@ -1,6 +1,6 @@
 import { ErrorRequestHandler } from 'express'
 import { ZodError } from 'zod';
-import { MembershipRequestBodyError } from './modern/modules/membership/membership.service';
+import { MembershipRequestBodyError } from './modern/modules/membership/membership.errors';
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   console.error(err.stack);

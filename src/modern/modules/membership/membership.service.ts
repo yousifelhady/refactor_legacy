@@ -1,6 +1,7 @@
 import * as z from "zod";
 import { v4 as uuidv4 } from "uuid";
 import membershipsData from "../../../data/memberships.json";
+import { MembershipRequestBodyError } from './membership.errors';
 import { constructMembershipPeriods, getAllMembershipPeriods, MembershipPeriod } from "../membershipPeriod/membershipPeriod.service";
 
 type Membership = {
@@ -55,12 +56,6 @@ const CreateMembershipRequestBodySchema = z.object({
 });
 
 type CreateMembershipRequestBody = z.infer<typeof CreateMembershipRequestBodySchema>;
-
-export class MembershipRequestBodyError extends Error {
-	constructor(message: string) {
-		super(message);
-	}
-}
 
 export const getMembershipsWithPeriods = (): MembershipWithPeriods[] => {
 	const allMemberships = getAllMemberships();
