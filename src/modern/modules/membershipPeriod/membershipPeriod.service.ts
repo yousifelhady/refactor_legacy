@@ -36,7 +36,12 @@ export const constructMembershipPeriods = (membership: number, validFrom: Date, 
 			state: 'planned'
 		}
 		membershipPeriods.push(period)
+		saveMembershipPeriod(period);
 		periodStart = validUntil
 	}
 	return membershipPeriods;
-}
+};
+
+const saveMembershipPeriod = (membershipPeriod: MembershipPeriod) => {
+	membershipPeriodsData.push(membershipPeriod);
+};
