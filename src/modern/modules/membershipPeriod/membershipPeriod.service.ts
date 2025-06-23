@@ -11,7 +11,7 @@ export type MembershipPeriod = {
 	state: string
 };
 
-enum MembershipPeriodState {
+export enum MembershipPeriodState {
 	PLANNED = 'planned'
 };
 

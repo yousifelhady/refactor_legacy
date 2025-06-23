@@ -25,7 +25,7 @@ type MembershipWithPeriods = {
 	periods: MembershipPeriod[]
 };
 
-enum PaymentMethod {
+export enum PaymentMethod {
 	CASH = 'cash',
 	CREDITCARD = 'credit card'
 };
