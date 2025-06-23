@@ -49,7 +49,7 @@ describe('membershipService', () => {
 			}
 			return membershipPeriods;
 		};
-		
+
 		it('should return correct count of memberships and their corresponding periods', () => {
 			const membershipsCount = 2;
 			const memberships: Membership[] = constructMemberships(membershipsCount);
@@ -69,4 +69,7 @@ describe('membershipService', () => {
 			expect(getAllMembershipPeriodsSpy).toHaveBeenCalledTimes(1);
 		});
 	});
+
+	// future work
+	// implement unit tests for the rest of the membershipService functions
 });
