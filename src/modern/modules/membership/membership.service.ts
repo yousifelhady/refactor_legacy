@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import membershipsData from "../../../data/memberships.json";
 import { CreateMembershipRequestBodyError } from './membership.errors';
 import { constructMembershipPeriods, getAllMembershipPeriods, MembershipPeriod } from "../membershipPeriod/membershipPeriod.service";
+import { BillingInterval } from "../../shared/types";
 
 type Membership = {
 	assignedBy: string,
@@ -25,7 +26,7 @@ type MembershipWithPeriods = {
 };
 
 const CreateMembershipRequestBodySchema = z.object({
-	billingInterval: z.enum(["weekly", "monthly", "yearly"], {
+	billingInterval: z.nativeEnum(BillingInterval, {
 		errorMap: (issue) => {
 			if (issue.code === "invalid_enum_value") {
 				return { message: "invalidBillingInterval" }
@@ -124,10 +125,10 @@ const validateRecurringPriceAndPaymentMethod = (recurringPrice: number, paymentM
 	}
 }
 
-const validateBillingIntervalAndPeriods = (billingInterval: string, billingPeriods: number) => {
-	if (billingInterval === 'monthly') {
+const validateBillingIntervalAndPeriods = (billingInterval: BillingInterval, billingPeriods: number) => {
+	if (billingInterval === BillingInterval.MONTHLY) {
 		validateMonthlyBillingInterval(billingPeriods);
-	} else if (billingInterval === 'yearly') {
+	} else if (billingInterval === BillingInterval.YEARLY) {
 		validateYearlyBillingInterval(billingPeriods);
 	}
 }
@@ -150,14 +151,14 @@ const validateYearlyBillingInterval = (billingPeriods: number) => {
 	}
 }
 
-const calculateMembershipValidity = (inputValidFrom: Date | undefined, billingInterval: string, billingPeriods: number): { validFrom: Date, validUntil: Date } => {
+const calculateMembershipValidity = (inputValidFrom: Date | undefined, billingInterval: BillingInterval, billingPeriods: number): { validFrom: Date, validUntil: Date } => {
 	const validFrom = inputValidFrom ? new Date(inputValidFrom) : new Date();
   const validUntil = new Date(validFrom);
-  if (billingInterval === 'monthly') {
+  if (billingInterval === BillingInterval.MONTHLY) {
     validUntil.setMonth(validFrom.getMonth() + billingPeriods);
-  } else if (billingInterval === 'yearly') {
+  } else if (billingInterval === BillingInterval.YEARLY) {
     validUntil.setMonth(validFrom.getMonth() + billingPeriods * 12);
-  } else if (billingInterval === 'weekly') {
+  } else if (billingInterval === BillingInterval.WEEKLY) {
     validUntil.setDate(validFrom.getDate() + billingPeriods * 7);
   }
 	return { validFrom, validUntil };

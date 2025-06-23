@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import membershipPeriodsData from "../../../data/membership-periods.json";
+import { BillingInterval } from "../../shared/types";
 
 export type MembershipPeriod = {
 	id: number,
@@ -22,21 +23,21 @@ export const getAllMembershipPeriods = (): MembershipPeriod[] => {
  * Creates membership periods for a specific membership knowing its id.
  * @param membership membershipId
  * @param validFrom membership validFrom date
- * @param billingInterval the interval at which the bills are paid
+ * @param billingInterval an enum which indicate the interval at which the bills are paid
  * @param billingPeriods a number indicating billing periods
  * @returns 
  */
-export const constructMembershipPeriods = (membership: number, validFrom: Date, billingInterval: string, billingPeriods: number): MembershipPeriod[] => {
+export const constructMembershipPeriods = (membership: number, validFrom: Date, billingInterval: BillingInterval, billingPeriods: number): MembershipPeriod[] => {
 	const membershipPeriods: MembershipPeriod[] = [];
 	let periodStart = validFrom
 	for (let i = 0; i < billingPeriods; i++) {
 		const validFrom = periodStart
 		const validUntil = new Date(validFrom)
-		if (billingInterval === 'monthly') {
+		if (billingInterval === BillingInterval.MONTHLY) {
 			validUntil.setMonth(validFrom.getMonth() + 1);
-		} else if (billingInterval === 'yearly') {
+		} else if (billingInterval === BillingInterval.YEARLY) {
 			validUntil.setMonth(validFrom.getMonth() + 12);
-		} else if (billingInterval === 'weekly') {
+		} else if (billingInterval === BillingInterval.WEEKLY) {
 			validUntil.setDate(validFrom.getDate() + 7);
 		}
 		const period: MembershipPeriod = {
