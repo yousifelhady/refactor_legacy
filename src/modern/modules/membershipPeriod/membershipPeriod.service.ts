@@ -11,6 +11,10 @@ export type MembershipPeriod = {
 	state: string
 };
 
+enum MembershipPeriodState {
+	PLANNED = 'planned'
+};
+
 /**
  * Returns all membership periods available in the db (local JSON).
  * @returns MembershipPeriod[]
@@ -46,7 +50,7 @@ export const constructMembershipPeriods = (membership: number, validFrom: Date, 
 			membership,
 			start: validFrom.toISOString(),
 			end: validUntil.toISOString(),
-			state: 'planned'
+			state: MembershipPeriodState.PLANNED,
 		}
 		membershipPeriods.push(period)
 		saveMembershipPeriod(period);
