@@ -5,7 +5,7 @@ import { CreateMembershipRequestBodyError } from './membership.errors';
 import { constructMembershipPeriods, getAllMembershipPeriods, MembershipPeriod } from "../membershipPeriod/membershipPeriod.service";
 import { BillingInterval } from "../../shared/types";
 
-type Membership = {
+export type Membership = {
 	assignedBy: string,
 	billingInterval: string,
 	billingPeriods: number
@@ -28,6 +28,12 @@ type MembershipWithPeriods = {
 enum PaymentMethod {
 	CASH = 'cash',
 	CREDITCARD = 'credit card'
+};
+
+export enum MembershipState {
+	ACTIVE = 'active',
+	PENDING = 'pending',
+	EXPIRED = 'expired'
 };
 
 const CreateMembershipRequestBodySchema = z.object({
@@ -81,7 +87,7 @@ export const getMembershipsWithPeriods = (): MembershipWithPeriods[] => {
 /**
  * Returns all memberships from the db (or local JSON file)
  */
-const getAllMemberships = (): Membership[] => {
+export const getAllMemberships = (): Membership[] => {
 	return membershipsData;
 };
 
@@ -170,13 +176,13 @@ const calculateMembershipValidity = (inputValidFrom: Date | undefined, billingIn
 }
 
 const getMembershipState = (validFrom: Date, validUntil: Date): string => {
-	let state = 'active'
+	let state = MembershipState.ACTIVE;
 	const now = new Date();
 	if (validFrom > now) {
-		state = 'pending'
+		state = MembershipState.PENDING;
 	}
 	if (validUntil < now) {
-		state = 'expired'
+		state = MembershipState.EXPIRED;
 	}
 	return state;
 }
