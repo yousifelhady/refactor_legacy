@@ -25,6 +25,11 @@ type MembershipWithPeriods = {
 	periods: MembershipPeriod[]
 };
 
+enum PaymentMethod {
+	CASH = 'cash',
+	CREDITCARD = 'credit card'
+};
+
 const CreateMembershipRequestBodySchema = z.object({
 	billingInterval: z.nativeEnum(BillingInterval, {
 		errorMap: (issue) => {
@@ -40,7 +45,7 @@ const CreateMembershipRequestBodySchema = z.object({
 	name: z.string({
 		required_error: "missingMandatoryFields"
 	}),
-	paymentMethod: z.enum(["cash", "credit card"], {
+	paymentMethod: z.nativeEnum(PaymentMethod, {
 		errorMap: (issue) => {
 			if (issue.code === "invalid_enum_value") {
 				return { message: "invalidPaymentMethod" }
@@ -120,7 +125,7 @@ const validateRequestBody = (requestBody: CreateMembershipRequestBody) => {
 };
 
 const validateRecurringPriceAndPaymentMethod = (recurringPrice: number, paymentMethod: string) => {
-	if (recurringPrice > 100 && paymentMethod === 'cash') {
+	if (recurringPrice > 100 && paymentMethod === PaymentMethod.CASH) {
 		throw new CreateMembershipRequestBodyError("cashPriceBelow100")
 	}
 }
