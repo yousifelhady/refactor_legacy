@@ -18,6 +18,12 @@ This exercise aims to refactor legacy endpoints under path `src/legacy/routes` w
 - **Assumption & Decision**: The loaded `memberships` from the static json have its nested fields ordered differently from how I ordered them in my code. I ordered them alplabeticaly to make reading (and also adding new keys) easier. But when displaying the result of memberships after adding a new membership, some memberships will have different order of its nested fields. For real database it won't happen because the database will return the keys sorted the same way every time.
 - **Note**: There is inconsistency between the returned nested field name `membershipId` when using the legacy `POST /legacy/memberships` endpoint and returned nested field name `membership` when using the modern `POST /memberships` endpoint when listing the `membershipPeriods` (because there is no defined type in the legacy endpoint).
 
+### Future Work
+- Cover all functions in `src/modern/modules/membership/membership.service.ts` with unit tests.
+- Cover all functions in `src/modern/modules/membershipPeriod/membershipPeriod.service.ts` with unit tests.
+- Cover endpoints with unit tests to ensure valid responses to the client side.
+- Add eslint config to the repo to lint the code before pushing to remote.
+
 
 ## Task 2 - Design an architecture to provide a membership export (conception only)
 notes here
