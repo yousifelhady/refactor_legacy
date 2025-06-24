@@ -6,7 +6,17 @@ This exercise aims to refactor legacy endpoints under path `src/legacy/routes` w
 
 
 ## Task 1 - Modernization of the membership codebase (backend only)
-notes here
+### Assumptions & Decisions
+- **Decision**: In `memberships.json`, `membership` with `id=3` has `paymentMethod = null`. I can changed it to one of the valid payment methods as the `paymentMethod` should be a valid string and not nullable (as per the data model provided).
+- **Assumption**: Valid payment methods are "cash" and "credit card" (as per the provided local data in the JSON file).
+- **Decision**: Add a new custom error message for invalid `paymentMethod` "invalidPaymentMethod" as there was no check for the `paymentMethod` provided in the request body.
+- In the legacy code, when invalid `billingInterval` is provided, the error message returned is "invalidBillingPeriods". **Decision**: Renaming "invalidBillingPeriods" error message to "invalidBillingInterval" as the if condition check for the `billingInterval` not the `billingPeriods`.
+- **Decision**: Added "Zod" as a validation library for the Request Body.
+- **Assumption & Decision**: All parsed fields from the request body are mandatory fields, therefore I add a validation check using Zod for the mandatory fields (`name`, `recurringPrice`, `paymentMethod`, `billingInterval`, `billingPeriods`).
+- **Fix**: In the legacy code, error message "billingPeriodsLessThan3Years" is implemented incorrect. I fixed it.
+- **Assumption & Decision**: I noticed that for the legacy endpoints, `GET /memberships` return key fields `membership` and `periods`, while `POST /memberships` return key fields `membership` and `membershipPeriods` when listing the membership and its periods (therefore inconsistency). Since the requirement is to maintain exact same response, I will maintain the key fields naming in the modern endponts as they are in the legacy.
+- **Assumption & Decision**: The loaded `memberships` from the static json have its nested fields ordered differently from how I ordered them in my code. I ordered them alplabeticaly to make reading (and also adding new keys) easier. But when displaying the result of memberships after adding a new membership, some memberships will have different order of its nested fields. For real database it won't happen because the database will return the keys sorted the same way every time.
+- **Note**: There is inconsistency between the returned nested field name `membershipId` when using the legacy `POST /legacy/memberships` endpoint and returned nested field name `membership` when using the modern `POST /memberships` endpoint when listing the `membershipPeriods` (because there is no defined type in the legacy endpoint).
 
 
 ## Task 2 - Design an architecture to provide a membership export (conception only)
