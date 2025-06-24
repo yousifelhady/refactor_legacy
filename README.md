@@ -26,7 +26,7 @@ This exercise aims to refactor legacy endpoints under path `src/legacy/routes` w
 
 
 ## Task 2 - Design an architecture to provide a membership export (conception only)
-notes here
+Please check the architecture PDF, Notes are written in the PDF itself.
 
 
 ## Repository Description
