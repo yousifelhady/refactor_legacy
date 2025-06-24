@@ -11,7 +11,7 @@ This exercise aims to refactor legacy endpoints under path `src/legacy/routes` w
 - **Assumption**: Valid payment methods are "cash" and "credit card" (as per the provided local data in the JSON file).
 - **Decision**: Add a new custom error message for invalid `paymentMethod` "invalidPaymentMethod" as there was no check for the `paymentMethod` provided in the request body.
 - In the legacy code, when invalid `billingInterval` is provided, the error message returned is "invalidBillingPeriods". **Decision**: Renaming "invalidBillingPeriods" error message to "invalidBillingInterval" as the if condition check for the `billingInterval` not the `billingPeriods`.
-- **Decision**: Added "Zod" as a validation library for the Request Body.
+- **Decision**: Added [Zod](https://zod.dev/) as a validation library for the Request Body.
 - **Assumption & Decision**: All parsed fields from the request body are mandatory fields, therefore I add a validation check using Zod for the mandatory fields (`name`, `recurringPrice`, `paymentMethod`, `billingInterval`, `billingPeriods`).
 - **Fix**: In the legacy code, error message "billingPeriodsLessThan3Years" is implemented incorrect. I fixed it.
 - **Assumption & Decision**: I noticed that for the legacy endpoints, `GET /memberships` return key fields `membership` and `periods`, while `POST /memberships` return key fields `membership` and `membershipPeriods` when listing the membership and its periods (therefore inconsistency). Since the requirement is to maintain exact same response, I will maintain the key fields naming in the modern endponts as they are in the legacy.
