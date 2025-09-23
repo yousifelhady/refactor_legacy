@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createMembershipWithPeriods, getMembershipsWithPeriods } from "./membership.service";
+import { createMembershipWithPeriods, getMembershipsWithPeriods, terminateMembership } from "./membership.service";
 
 export const get = (req: Request, res: Response) => {
   const membershipsWithPeriods = getMembershipsWithPeriods();
@@ -12,4 +12,11 @@ export const create = (req: Request, res: Response) => {
 		membership: membershipWithPeriods.membership,
 		membershipPeriods: membershipWithPeriods.periods,
 	});
+}
+
+  export const terminate = (req: Request, res: Response) => {
+  const terminationStatus = terminateMembership(req.body);
+  res.status(200).json({
+    status: terminationStatus,
+  });
 }

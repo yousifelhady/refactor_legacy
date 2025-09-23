@@ -1,8 +1,8 @@
 import * as z from "zod";
 import { v4 as uuidv4 } from "uuid";
 import membershipsData from "../../../data/memberships.json";
-import { CreateMembershipRequestBodyError } from './membership.errors';
-import { constructMembershipPeriods, getAllMembershipPeriods, MembershipPeriod } from "../membershipPeriod/membershipPeriod.service";
+import { CreateMembershipRequestBodyError, MembershipNotFoundError, TerminateMembershipError } from './membership.errors';
+import { constructMembershipPeriods, getAllMembershipPeriods, MembershipPeriod, checkPendingMembershipPeriods, temrinateMembershipPeriods } from "../membershipPeriod/membershipPeriod.service";
 import { BillingInterval } from "../../shared/types";
 
 export type Membership = {
@@ -33,7 +33,8 @@ export enum PaymentMethod {
 export enum MembershipState {
 	ACTIVE = 'active',
 	PENDING = 'pending',
-	EXPIRED = 'expired'
+	EXPIRED = 'expired',
+	TERMINATED = 'terminated',
 };
 
 const CreateMembershipRequestBodySchema = z.object({
@@ -67,7 +68,15 @@ const CreateMembershipRequestBodySchema = z.object({
 	validFrom: z.coerce.date().optional()
 });
 
+const TerminateMembershipRequestBodySchema = z.object({
+	membershipId: z.number({
+		required_error: "missing membershipId",
+	}),
+});
+
 type CreateMembershipRequestBody = z.infer<typeof CreateMembershipRequestBodySchema>;
+
+type TerminateMembershipRequestBody = z.infer<typeof TerminateMembershipRequestBodySchema>;
 
 /**
  * Returns all memberships with their periods
@@ -83,6 +92,20 @@ export const getMembershipsWithPeriods = (): MembershipWithPeriods[] => {
 	}
 	return membershipsWithPeriods;
 };
+
+const getMembershipWithPeriods = (membershipId: number): MembershipWithPeriods => {
+	const allMemberships = getAllMemberships();
+	const allMembershipPeriods = getAllMembershipPeriods();
+	const membership: Membership | undefined = allMemberships.filter(m => m.id === membershipId).at(0);
+	if (!membership) {
+		throw new MembershipNotFoundError(membershipId);
+	};
+	const periods = allMembershipPeriods.filter(p => p.membership === membershipId);
+	return {
+		membership,
+		periods,
+	};
+}
 
 /**
  * Returns all memberships from the db (or local JSON file)
@@ -107,17 +130,17 @@ export const createMembershipWithPeriods = (requestBody: CreateMembershipRequest
 	const state = getMembershipState(validFrom, validUntil);
 	const membership: Membership = {
 		assignedBy,
-    billingInterval,
-    billingPeriods,
-    id: getAllMemberships().length + 1,
-    name,
-    paymentMethod,
-    recurringPrice,
-    state,
+		billingInterval,
+		billingPeriods,
+		id: getAllMemberships().length + 1,
+		name,
+		paymentMethod,
+		recurringPrice,
+		state,
 		userId,
-    uuid: uuidv4(),
-    validFrom: validFrom.toISOString(),
-    validUntil: validUntil.toISOString(),
+		uuid: uuidv4(),
+		validFrom: validFrom.toISOString(),
+		validUntil: validUntil.toISOString(),
   };
 	saveMembership(membership);
 	const periods = constructMembershipPeriods(membership.id, validFrom, billingInterval, billingPeriods);
@@ -189,4 +212,19 @@ const getMembershipState = (validFrom: Date, validUntil: Date): string => {
 
 const saveMembership = (membership: Membership) => {
 	membershipsData.push(membership);
+}
+
+export const terminateMembership = (requestBody: TerminateMembershipRequestBody) => {
+	TerminateMembershipRequestBodySchema.parse(requestBody);
+	const membershipWithPeriods = getMembershipWithPeriods(requestBody.membershipId);
+	const membership: Membership = membershipWithPeriods.membership;
+	if (membership.state === MembershipState.EXPIRED || membership.state === MembershipState.TERMINATED) {
+		throw new TerminateMembershipError("membership is already expired or temrinated");
+	}
+	if(!checkPendingMembershipPeriods(membershipWithPeriods.periods)) {
+		throw new TerminateMembershipError("membership does not have planned periods");
+	}
+	membership.state = MembershipState.TERMINATED;
+	temrinateMembershipPeriods(membershipWithPeriods.periods);
+	return true;
 }

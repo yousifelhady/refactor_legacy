@@ -8,11 +8,13 @@ export type MembershipPeriod = {
 	membership: number,
 	start: string,
 	end: string,
-	state: string
+	state: string,
 };
 
 export enum MembershipPeriodState {
-	PLANNED = 'planned'
+	ISSUED = 'issued',
+	PLANNED = 'planned',
+	TERMINATED = 'terminated',
 };
 
 /**
@@ -62,3 +64,17 @@ export const constructMembershipPeriods = (membership: number, validFrom: Date, 
 const saveMembershipPeriod = (membershipPeriod: MembershipPeriod) => {
 	membershipPeriodsData.push(membershipPeriod);
 };
+
+export const checkPendingMembershipPeriods = (periods: MembershipPeriod[]): boolean => {
+	return periods.some(p => p.state === MembershipPeriodState.PLANNED ||
+		p.state === MembershipPeriodState.ISSUED
+	);
+}
+
+export const temrinateMembershipPeriods = (periods: MembershipPeriod[]) => {
+	periods.forEach(p => {
+		if (p.state === MembershipPeriodState.PLANNED || p.state === MembershipPeriodState.ISSUED) {
+			p.state = MembershipPeriodState.TERMINATED;
+		}
+	})
+}
