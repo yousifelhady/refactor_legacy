@@ -1,7 +1,7 @@
 {
-  "name": "eversports-fullstack-interview",
+  "name": "refactor-legacy",
   "version": "1.0.0",
-  "description": "technical assessment for the fullstack developer interview",
+  "description": "refactor legacy code to a modernized structured code.",
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/index.ts",
