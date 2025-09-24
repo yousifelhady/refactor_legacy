@@ -1,3 +1,4 @@
+import _, { isEqual } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import * as membershipPeriodService from "../membershipPeriod/membershipPeriod.service";
 import * as membershipService from "./membership.service";
@@ -87,6 +88,28 @@ describe('membershipService', () => {
 			membershipsWithPeriods.forEach(item => {
 				const actualMembership = memberships.find(m => m.id === item.membership.id);
 				expect(item.membership).toStrictEqual(actualMembership);
+			})
+			expect(getAllMembershipsSpy).toHaveBeenCalledTimes(1);
+			expect(getAllMembershipPeriodsSpy).toHaveBeenCalledTimes(1);
+		});
+
+		it('should validate that membership periods fields returned are equal and same to the original membership period object fields', () => {
+			const membershipsCount = 2;
+			const memberships: Membership[] = constructMemberships(membershipsCount);
+			const periodsCount = 1;
+			let membershipPeriods: MembershipPeriod[] = [];
+			memberships.forEach(membership => {
+				membershipPeriods = membershipPeriods.concat(constructMembershipPeriods(periodsCount, membership.id));
+			})
+			const getAllMembershipsSpy = jest.spyOn(membershipService, 'getAllMemberships').mockReturnValueOnce(memberships);
+			const getAllMembershipPeriodsSpy = jest.spyOn(membershipPeriodService, 'getAllMembershipPeriods').mockReturnValueOnce(membershipPeriods);
+			const membershipsWithPeriods = getMembershipsWithPeriods();
+			membershipsWithPeriods.forEach(item => {
+				const actualMembershipPeriods = membershipPeriods.filter(mp => {
+					if(item.periods.includes(mp))
+						return mp;
+				})
+				expect(_.isEqual(item.periods, actualMembershipPeriods)).toBeTruthy();
 			})
 			expect(getAllMembershipsSpy).toHaveBeenCalledTimes(1);
 			expect(getAllMembershipPeriodsSpy).toHaveBeenCalledTimes(1);
