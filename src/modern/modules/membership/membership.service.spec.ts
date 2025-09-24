@@ -50,6 +50,10 @@ describe('membershipService', () => {
 			return membershipPeriods;
 		};
 
+		afterEach(() => {
+			jest.clearAllMocks();
+		})
+
 		it('should return correct count of memberships and their corresponding periods', () => {
 			const membershipsCount = 2;
 			const memberships: Membership[] = constructMemberships(membershipsCount);
@@ -65,6 +69,25 @@ describe('membershipService', () => {
 			membershipsWithPeriods.forEach(item => {
 				expect(item.periods.length).toEqual(periodsCount);
 			});
+			expect(getAllMembershipsSpy).toHaveBeenCalledTimes(1);
+			expect(getAllMembershipPeriodsSpy).toHaveBeenCalledTimes(1);
+		});
+
+		it('should validate that membership fields returned are equal and same to the membership object fields', () => {
+			const membershipsCount = 2;
+			const memberships: Membership[] = constructMemberships(membershipsCount);
+			const periodsCount = 1;
+			let membershipPeriods: MembershipPeriod[] = [];
+			memberships.forEach(membership => {
+				membershipPeriods = membershipPeriods.concat(constructMembershipPeriods(periodsCount, membership.id));
+			})
+			const getAllMembershipsSpy = jest.spyOn(membershipService, 'getAllMemberships').mockReturnValueOnce(memberships);
+			const getAllMembershipPeriodsSpy = jest.spyOn(membershipPeriodService, 'getAllMembershipPeriods').mockReturnValueOnce(membershipPeriods);
+			const membershipsWithPeriods = getMembershipsWithPeriods();
+			membershipsWithPeriods.forEach(item => {
+				const actualMembership = memberships.find(m => m.id === item.membership.id);
+				expect(item.membership).toStrictEqual(actualMembership);
+			})
 			expect(getAllMembershipsSpy).toHaveBeenCalledTimes(1);
 			expect(getAllMembershipPeriodsSpy).toHaveBeenCalledTimes(1);
 		});
