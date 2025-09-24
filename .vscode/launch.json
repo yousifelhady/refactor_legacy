@@ -1,0 +1,43 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        // Debug Node.JS app (plain JS or compiled TS)
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug NodeJS app",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/dist/index.js",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "outFiles": [
+                "${workspaceFolder}/dist/**/*.js"
+            ]
+        },
+        // Debug using nodemon
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug with nodemon",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run-script", "dev"],
+            "restart": true,
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        // Debug Typescript app directly using ts-node
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug TS app (ts-node)",
+            "program": "${workspaceFolder}/src/index.ts",
+            "runtimeArgs": ["-r", "ts-node/register"],
+            "skipFiles": ["<node_internals>/**"],
+            "console": "integratedTerminal"
+        },
+    ]
+}
